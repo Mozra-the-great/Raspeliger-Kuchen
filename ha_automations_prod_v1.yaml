@@ -1,0 +1,645 @@
+# ============================================================
+# RASPI CHALLENGE 2026 - Automationen PROD
+# Timeouts: Buchung=10min, Person-weg=2min, No-Show=10min
+# ============================================================
+
+# ============================================================
+# RAUM A - BUCHUNG KOMFORT TEST
+# ============================================================
+- id: "raum_a_buchung_komfort_prod"
+  alias: "Raum A - Buchung Komfort PROD"
+  description: "[PROD] Komfort ein bei Buchung, aus nach 10s wenn niemand kommt"
+  trigger:
+    - platform: state
+      entity_id: sensor.buchung_aktiv_a
+      to: "on"
+  action:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_raum_a_2
+    - service: cover.open_cover
+      target:
+        entity_id: cover.rollo_raum_a_2
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ now().month in [5,6,7,8,9] }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_a_2
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.klima_raum_a_2
+              data:
+                temperature: 22
+      default:
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: climate.klima_raum_a_2
+          data:
+            hvac_mode: heat
+        - service: climate.set_temperature
+          target:
+            entity_id: climate.klima_raum_a_2
+          data:
+            temperature: 21
+    - wait_template: "{{ is_state('binary_sensor.anwesenheit_raum_a', 'on') }}"
+      timeout: "00:10:00"
+      continue_on_timeout: true
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ not wait.completed and is_state('sensor.buchung_aktiv_a', 'on') }}"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.licht_raum_a_2
+            - service: cover.close_cover
+              target:
+                entity_id: cover.rollo_raum_a_2
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_a_2
+              data:
+                hvac_mode: "off"
+  mode: restart
+
+# ============================================================
+# RAUM A - PERSON ERKANNT TEST
+# ============================================================
+- id: "raum_a_person_erkannt_prod"
+  alias: "Raum A - Person erkannt PROD"
+  description: "[PROD] Komfort ein wenn Person erkannt"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.anwesenheit_raum_a
+      to: "on"
+  action:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_raum_a_2
+    - service: cover.open_cover
+      target:
+        entity_id: cover.rollo_raum_a_2
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ now().month in [5,6,7,8,9] }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_a_2
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.klima_raum_a_2
+              data:
+                temperature: 22
+      default:
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: climate.klima_raum_a_2
+          data:
+            hvac_mode: heat
+        - service: climate.set_temperature
+          target:
+            entity_id: climate.klima_raum_a_2
+          data:
+            temperature: 21
+  mode: single
+  max_exceeded: silent
+
+# ============================================================
+# RAUM A - PERSON WEG TEST
+# ============================================================
+- id: "raum_a_person_weg_prod"
+  alias: "Raum A - Person weg PROD"
+  description: "[PROD] Komfort aus 30s nach Person weg, nur wenn nicht gebucht"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.anwesenheit_raum_a
+      to: "off"
+  condition:
+    - condition: state
+      entity_id: sensor.buchung_aktiv_a
+      state: "off"
+  action:
+    - delay: "00:02:00"
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.anwesenheit_raum_a
+              state: "off"
+            - condition: state
+              entity_id: sensor.buchung_aktiv_a
+              state: "off"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.licht_raum_a_2
+            - service: cover.close_cover
+              target:
+                entity_id: cover.rollo_raum_a_2
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_a_2
+              data:
+                hvac_mode: "off"
+  mode: restart
+
+# ============================================================
+# RAUM B - BUCHUNG KOMFORT TEST
+# ============================================================
+- id: "raum_b_buchung_komfort_prod"
+  alias: "Raum B - Buchung Komfort PROD"
+  description: "[PROD] Komfort ein bei Buchung, aus nach 10s wenn niemand kommt"
+  trigger:
+    - platform: state
+      entity_id: sensor.buchung_aktiv_b
+      to: "on"
+  action:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_raum_b_2
+    - service: cover.open_cover
+      target:
+        entity_id: cover.rollo_raum_b_2
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ now().month in [5,6,7,8,9] }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_b_2
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.klima_raum_b_2
+              data:
+                temperature: 22
+      default:
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: climate.klima_raum_b_2
+          data:
+            hvac_mode: heat
+        - service: climate.set_temperature
+          target:
+            entity_id: climate.klima_raum_b_2
+          data:
+            temperature: 21
+    - wait_template: "{{ is_state('binary_sensor.anwesenheit_raum_b', 'on') }}"
+      timeout: "00:10:00"
+      continue_on_timeout: true
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ not wait.completed and is_state('sensor.buchung_aktiv_b', 'on') }}"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.licht_raum_b_2
+            - service: cover.close_cover
+              target:
+                entity_id: cover.rollo_raum_b_2
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_b_2
+              data:
+                hvac_mode: "off"
+  mode: restart
+
+# ============================================================
+# RAUM B - PERSON ERKANNT TEST
+# ============================================================
+- id: "raum_b_person_erkannt_prod"
+  alias: "Raum B - Person erkannt PROD"
+  description: "[PROD] Komfort ein wenn Person erkannt"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.anwesenheit_raum_b
+      to: "on"
+  action:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_raum_b_2
+    - service: cover.open_cover
+      target:
+        entity_id: cover.rollo_raum_b_2
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ now().month in [5,6,7,8,9] }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_b_2
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.klima_raum_b_2
+              data:
+                temperature: 22
+      default:
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: climate.klima_raum_b_2
+          data:
+            hvac_mode: heat
+        - service: climate.set_temperature
+          target:
+            entity_id: climate.klima_raum_b_2
+          data:
+            temperature: 21
+  mode: single
+  max_exceeded: silent
+
+# ============================================================
+# RAUM B - PERSON WEG TEST
+# ============================================================
+- id: "raum_b_person_weg_prod"
+  alias: "Raum B - Person weg PROD"
+  description: "[PROD] Komfort aus 30s nach Person weg, nur wenn nicht gebucht"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.anwesenheit_raum_b
+      to: "off"
+  condition:
+    - condition: state
+      entity_id: sensor.buchung_aktiv_b
+      state: "off"
+  action:
+    - delay: "00:02:00"
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.anwesenheit_raum_b
+              state: "off"
+            - condition: state
+              entity_id: sensor.buchung_aktiv_b
+              state: "off"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.licht_raum_b_2
+            - service: cover.close_cover
+              target:
+                entity_id: cover.rollo_raum_b_2
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_b_2
+              data:
+                hvac_mode: "off"
+  mode: restart
+
+# ============================================================
+# RAUM C - BUCHUNG KOMFORT TEST
+# ============================================================
+- id: "raum_c_buchung_komfort_prod"
+  alias: "Raum C - Buchung Komfort PROD"
+  description: "[PROD] Komfort ein bei Buchung, aus nach 10s wenn niemand kommt"
+  trigger:
+    - platform: state
+      entity_id: sensor.buchung_aktiv_c
+      to: "on"
+  action:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_raum_c_2
+    - service: cover.open_cover
+      target:
+        entity_id: cover.rollo_raum_c_2
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ now().month in [5,6,7,8,9] }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_c_2
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.klima_raum_c_2
+              data:
+                temperature: 22
+      default:
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: climate.klima_raum_c_2
+          data:
+            hvac_mode: heat
+        - service: climate.set_temperature
+          target:
+            entity_id: climate.klima_raum_c_2
+          data:
+            temperature: 21
+    - wait_template: "{{ is_state('binary_sensor.anwesenheit_raum_c', 'on') }}"
+      timeout: "00:10:00"
+      continue_on_timeout: true
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ not wait.completed and is_state('sensor.buchung_aktiv_c', 'on') }}"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.licht_raum_c_2
+            - service: cover.close_cover
+              target:
+                entity_id: cover.rollo_raum_c_2
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_c_2
+              data:
+                hvac_mode: "off"
+  mode: restart
+
+# ============================================================
+# RAUM C - PERSON ERKANNT TEST
+# ============================================================
+- id: "raum_c_person_erkannt_prod"
+  alias: "Raum C - Person erkannt PROD"
+  description: "[PROD] Komfort ein wenn Person erkannt"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.anwesenheit_raum_c
+      to: "on"
+  action:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_raum_c_2
+    - service: cover.open_cover
+      target:
+        entity_id: cover.rollo_raum_c_2
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ now().month in [5,6,7,8,9] }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_c_2
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.klima_raum_c_2
+              data:
+                temperature: 22
+      default:
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: climate.klima_raum_c_2
+          data:
+            hvac_mode: heat
+        - service: climate.set_temperature
+          target:
+            entity_id: climate.klima_raum_c_2
+          data:
+            temperature: 21
+  mode: single
+  max_exceeded: silent
+
+# ============================================================
+# RAUM C - PERSON WEG TEST
+# ============================================================
+- id: "raum_c_person_weg_prod"
+  alias: "Raum C - Person weg PROD"
+  description: "[PROD] Komfort aus 30s nach Person weg, nur wenn nicht gebucht"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.anwesenheit_raum_c
+      to: "off"
+  condition:
+    - condition: state
+      entity_id: sensor.buchung_aktiv_c
+      state: "off"
+  action:
+    - delay: "00:02:00"
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.anwesenheit_raum_c
+              state: "off"
+            - condition: state
+              entity_id: sensor.buchung_aktiv_c
+              state: "off"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.licht_raum_c_2
+            - service: cover.close_cover
+              target:
+                entity_id: cover.rollo_raum_c_2
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_c_2
+              data:
+                hvac_mode: "off"
+  mode: restart
+
+# ============================================================
+# RAUM D - BUCHUNG KOMFORT TEST
+# ============================================================
+- id: "raum_d_buchung_komfort_prod"
+  alias: "Raum D - Buchung Komfort PROD"
+  description: "[PROD] Komfort ein bei Buchung, aus nach 10s wenn niemand kommt"
+  trigger:
+    - platform: state
+      entity_id: sensor.buchung_aktiv_d
+      to: "on"
+  action:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_raum_d_2
+    - service: cover.open_cover
+      target:
+        entity_id: cover.rollo_raum_d_2
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ now().month in [5,6,7,8,9] }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_d_2
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.klima_raum_d_2
+              data:
+                temperature: 22
+      default:
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: climate.klima_raum_d_2
+          data:
+            hvac_mode: heat
+        - service: climate.set_temperature
+          target:
+            entity_id: climate.klima_raum_d_2
+          data:
+            temperature: 21
+    - wait_template: "{{ is_state('binary_sensor.anwesenheit_raum_d', 'on') }}"
+      timeout: "00:10:00"
+      continue_on_timeout: true
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ not wait.completed and is_state('sensor.buchung_aktiv_d', 'on') }}"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.licht_raum_d_2
+            - service: cover.close_cover
+              target:
+                entity_id: cover.rollo_raum_d_2
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_d_2
+              data:
+                hvac_mode: "off"
+  mode: restart
+
+# ============================================================
+# RAUM D - PERSON ERKANNT TEST
+# ============================================================
+- id: "raum_d_person_erkannt_prod"
+  alias: "Raum D - Person erkannt PROD"
+  description: "[PROD] Komfort ein wenn Person erkannt"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.anwesenheit_raum_d
+      to: "on"
+  action:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_raum_d_2
+    - service: cover.open_cover
+      target:
+        entity_id: cover.rollo_raum_d_2
+    - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ now().month in [5,6,7,8,9] }}"
+          sequence:
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_d_2
+              data:
+                hvac_mode: cool
+            - service: climate.set_temperature
+              target:
+                entity_id: climate.klima_raum_d_2
+              data:
+                temperature: 22
+      default:
+        - service: climate.set_hvac_mode
+          target:
+            entity_id: climate.klima_raum_d_2
+          data:
+            hvac_mode: heat
+        - service: climate.set_temperature
+          target:
+            entity_id: climate.klima_raum_d_2
+          data:
+            temperature: 21
+  mode: single
+  max_exceeded: silent
+
+# ============================================================
+# RAUM D - PERSON WEG TEST
+# ============================================================
+- id: "raum_d_person_weg_prod"
+  alias: "Raum D - Person weg PROD"
+  description: "[PROD] Komfort aus 30s nach Person weg, nur wenn nicht gebucht"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.anwesenheit_raum_d
+      to: "off"
+  condition:
+    - condition: state
+      entity_id: sensor.buchung_aktiv_d
+      state: "off"
+  action:
+    - delay: "00:02:00"
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: binary_sensor.anwesenheit_raum_d
+              state: "off"
+            - condition: state
+              entity_id: sensor.buchung_aktiv_d
+              state: "off"
+          sequence:
+            - service: light.turn_off
+              target:
+                entity_id: light.licht_raum_d_2
+            - service: cover.close_cover
+              target:
+                entity_id: cover.rollo_raum_d_2
+            - service: climate.set_hvac_mode
+              target:
+                entity_id: climate.klima_raum_d_2
+              data:
+                hvac_mode: "off"
+  mode: restart
+
+# ============================================================
+# NO-SHOW AUTO-RELEASE TEST
+# ============================================================
+- id: "no_show_auto_release_prod"
+  alias: "No-Show Auto-Release PROD"
+  description: "[PROD] Storniert Buchung wenn 30s niemand erscheint"
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.buchung_aktiv_a
+        - sensor.buchung_aktiv_b
+        - sensor.buchung_aktiv_c
+        - sensor.buchung_aktiv_d
+      to: "on"
+  variables:
+    raum_short: "{{ trigger.entity_id.split('_')[-1] }}"
+    raum_id: "raum_{{ trigger.entity_id.split('_')[-1] }}"
+    anwesenheit_entity: "binary_sensor.anwesenheit_raum_{{ trigger.entity_id.split('_')[-1] }}"
+    buchung_entity: "{{ trigger.entity_id }}"
+  action:
+    - repeat:
+        while:
+          - condition: template
+            value_template: "{{ is_state(buchung_entity, 'on') }}"
+        sequence:
+          - wait_template: "{{ is_state(anwesenheit_entity, 'on') }}"
+            timeout: "00:10:00"
+            continue_on_timeout: true
+          - choose:
+              - conditions:
+                  - condition: template
+                    value_template: "{{ wait.completed }}"
+                sequence:
+                  - wait_template: "{{ is_state(anwesenheit_entity, 'off') }}"
+                    timeout: "02:00:00"
+                    continue_on_timeout: true
+            default:
+              - condition: template
+                value_template: "{{ is_state(buchung_entity, 'on') }}"
+              - service: rest_command.raum_frei
+                data:
+                  raum_id: "{{ raum_id }}"
+              - service: persistent_notification.create
+                data:
+                  title: "Auto-Release"
+                  message: "Buchung Raum {{ raum_short | upper }} storniert - niemand erschienen."
+  mode: parallel
+  max: 4
