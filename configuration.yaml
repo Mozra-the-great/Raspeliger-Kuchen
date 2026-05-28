@@ -1,0 +1,317 @@
+# ===================================================
+# HA CONFIGURATION — Komplett, Stand 27.05.2026
+# Topic-Flow:
+#   Bedienpanel --> cmd/raum_x/...        --> HA + Geräte reagieren
+#   Kamera (KI) --> room/raum_x/occupied  --> HA + Bedienpanel
+#   HA          --> POST /raum/x/frei     --> Flask storniert Buchung
+# ===================================================
+
+default_config:
+
+frontend:
+  themes: !include_dir_merge_named themes
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+
+# ===================================================
+# MQTT
+# Wichtig: optimistic = true  -->  HA schaltet sofort
+# beim Empfang einer Command-Nachricht
+# ===================================================
+mqtt:
+
+  # ---------- LICHTER ----------
+  light:
+    - name: "Licht Raum A"
+      unique_id: "li_raum_a"
+      command_topic: "cmd/raum_a/licht"
+      state_topic:   "cmd/raum_a/licht"
+      payload_on:  "on"
+      payload_off: "off"
+      optimistic: true
+      qos: 1
+
+    - name: "Licht Raum B"
+      unique_id: "li_raum_b"
+      command_topic: "cmd/raum_b/licht"
+      state_topic:   "cmd/raum_b/licht"
+      payload_on:  "on"
+      payload_off: "off"
+      optimistic: true
+      qos: 1
+
+    - name: "Licht Raum C"
+      unique_id: "li_raum_c"
+      command_topic: "cmd/raum_c/licht"
+      state_topic:   "cmd/raum_c/licht"
+      payload_on:  "on"
+      payload_off: "off"
+      optimistic: true
+      qos: 1
+
+    - name: "Licht Raum D"
+      unique_id: "li_raum_d"
+      command_topic: "cmd/raum_d/licht"
+      state_topic:   "cmd/raum_d/licht"
+      payload_on:  "on"
+      payload_off: "off"
+      optimistic: true
+      qos: 1
+
+  # ---------- ROLLOS ----------
+  cover:
+    - name: "Rollo Raum A"
+      unique_id: "ro_raum_a"
+      command_topic: "cmd/raum_a/rollo"
+      state_topic:   "cmd/raum_a/rollo"
+      payload_open:  "up"
+      payload_close: "down"
+      payload_stop:  "stop"
+      state_open:    "up"
+      state_closed:  "down"
+      state_stopped: "stop"
+      optimistic: true
+      qos: 1
+
+    - name: "Rollo Raum B"
+      unique_id: "ro_raum_b"
+      command_topic: "cmd/raum_b/rollo"
+      state_topic:   "cmd/raum_b/rollo"
+      payload_open:  "up"
+      payload_close: "down"
+      payload_stop:  "stop"
+      state_open:    "up"
+      state_closed:  "down"
+      state_stopped: "stop"
+      optimistic: true
+      qos: 1
+
+    - name: "Rollo Raum C"
+      unique_id: "ro_raum_c"
+      command_topic: "cmd/raum_c/rollo"
+      state_topic:   "cmd/raum_c/rollo"
+      payload_open:  "up"
+      payload_close: "down"
+      payload_stop:  "stop"
+      state_open:    "up"
+      state_closed:  "down"
+      state_stopped: "stop"
+      optimistic: true
+      qos: 1
+
+    - name: "Rollo Raum D"
+      unique_id: "ro_raum_d"
+      command_topic: "cmd/raum_d/rollo"
+      state_topic:   "cmd/raum_d/rollo"
+      payload_open:  "up"
+      payload_close: "down"
+      payload_stop:  "stop"
+      state_open:    "up"
+      state_closed:  "down"
+      state_stopped: "stop"
+      optimistic: true
+      qos: 1
+
+  # ---------- KLIMA ----------
+  climate:
+    - name: "Klima Raum A"
+      unique_id: "kl_raum_a"
+      modes: ["off", "heat", "cool"]
+      mode_command_topic: "cmd/raum_a/klima_modus"
+      mode_state_topic:   "cmd/raum_a/klima_modus"
+      temperature_command_topic: "cmd/raum_a/klima_soll"
+      temperature_state_topic:   "cmd/raum_a/klima_soll"
+      current_temperature_topic: "sensor/raum_a/temperatur"
+      min_temp: 15
+      max_temp: 30
+      temp_step: 1
+      optimistic: true
+      qos: 1
+
+    - name: "Klima Raum B"
+      unique_id: "kl_raum_b"
+      modes: ["off", "heat", "cool"]
+      mode_command_topic: "cmd/raum_b/klima_modus"
+      mode_state_topic:   "cmd/raum_b/klima_modus"
+      temperature_command_topic: "cmd/raum_b/klima_soll"
+      temperature_state_topic:   "cmd/raum_b/klima_soll"
+      current_temperature_topic: "sensor/raum_b/temperatur"
+      min_temp: 15
+      max_temp: 30
+      temp_step: 1
+      optimistic: true
+      qos: 1
+
+    - name: "Klima Raum C"
+      unique_id: "kl_raum_c"
+      modes: ["off", "heat", "cool"]
+      mode_command_topic: "cmd/raum_c/klima_modus"
+      mode_state_topic:   "cmd/raum_c/klima_modus"
+      temperature_command_topic: "cmd/raum_c/klima_soll"
+      temperature_state_topic:   "cmd/raum_c/klima_soll"
+      current_temperature_topic: "sensor/raum_c/temperatur"
+      min_temp: 15
+      max_temp: 30
+      temp_step: 1
+      optimistic: true
+      qos: 1
+
+    - name: "Klima Raum D"
+      unique_id: "kl_raum_d"
+      modes: ["off", "heat", "cool"]
+      mode_command_topic: "cmd/raum_d/klima_modus"
+      mode_state_topic:   "cmd/raum_d/klima_modus"
+      temperature_command_topic: "cmd/raum_d/klima_soll"
+      temperature_state_topic:   "cmd/raum_d/klima_soll"
+      current_temperature_topic: "sensor/raum_d/temperatur"
+      min_temp: 15
+      max_temp: 30
+      temp_step: 1
+      optimistic: true
+      qos: 1
+
+  # ---------- SENSOREN (vom Pi 5, aktuell nur Raum A) ----------
+  sensor:
+    - name: "Temperatur Raum A"
+      unique_id: "sn_temp_a"
+      state_topic: "sensor/raum_a/temperatur"
+      unit_of_measurement: "°C"
+      device_class: temperature
+
+    - name: "Luftfeuchte Raum A"
+      unique_id: "sn_hum_a"
+      state_topic: "sensor/raum_a/luftfeuchte"
+      unit_of_measurement: "%"
+      device_class: humidity
+
+    - name: "CO2 Raum A"
+      unique_id: "sn_co2_a"
+      state_topic: "sensor/raum_a/co2"
+      unit_of_measurement: "ppm"
+      device_class: carbon_dioxide
+
+  # ---------- ANWESENHEIT (vom Kamera-Pi) ----------
+  binary_sensor:
+    - name: "Anwesenheit Raum A"
+      unique_id: "pr_raum_a"
+      state_topic: "room/raum_a/occupied"
+      payload_on:  "true"
+      payload_off: "false"
+      device_class: occupancy
+      qos: 1
+
+    - name: "Anwesenheit Raum B"
+      unique_id: "pr_raum_b"
+      state_topic: "room/raum_b/occupied"
+      payload_on:  "true"
+      payload_off: "false"
+      device_class: occupancy
+      qos: 1
+
+    - name: "Anwesenheit Raum C"
+      unique_id: "pr_raum_c"
+      state_topic: "room/raum_c/occupied"
+      payload_on:  "true"
+      payload_off: "false"
+      device_class: occupancy
+      qos: 1
+
+    - name: "Anwesenheit Raum D"
+      unique_id: "pr_raum_d"
+      state_topic: "room/raum_d/occupied"
+      payload_on:  "true"
+      payload_off: "false"
+      device_class: occupancy
+      qos: 1
+
+  # ---------- BELEGT-SCHALTER (manuell + reagiert auf Kamera) ----------
+  switch:
+    - name: "Raum A belegt"
+      unique_id: "sw_belegt_a"
+      command_topic: "room/raum_a/occupied"
+      state_topic:   "room/raum_a/occupied"
+      payload_on:  "true"
+      payload_off: "false"
+      state_on:    "true"
+      state_off:   "false"
+      retain: true
+      qos: 0
+
+    - name: "Raum B belegt"
+      unique_id: "sw_belegt_b"
+      command_topic: "room/raum_b/occupied"
+      state_topic:   "room/raum_b/occupied"
+      payload_on:  "true"
+      payload_off: "false"
+      state_on:    "true"
+      state_off:   "false"
+      retain: true
+      qos: 0
+
+    - name: "Raum C belegt"
+      unique_id: "sw_belegt_c"
+      command_topic: "room/raum_c/occupied"
+      state_topic:   "room/raum_c/occupied"
+      payload_on:  "true"
+      payload_off: "false"
+      state_on:    "true"
+      state_off:   "false"
+      retain: true
+      qos: 0
+
+    - name: "Raum D belegt"
+      unique_id: "sw_belegt_d"
+      command_topic: "room/raum_d/occupied"
+      state_topic:   "room/raum_d/occupied"
+      payload_on:  "true"
+      payload_off: "false"
+      state_on:    "true"
+      state_off:   "false"
+      retain: true
+      qos: 0
+
+
+# ===================================================
+# REST — Buchungs-Status vom Bedienpanel pollen (alle 30s)
+# Liefert sensor.buchung_aktiv_a/b/c/d ("on" = aktive Buchung)
+# ===================================================
+rest:
+  - resource: "http://192.168.1.211:5000/api/raeume"
+    scan_interval: 30
+    sensor:
+      - name: "Buchung aktiv A"
+        unique_id: "rs_buchung_a"
+        value_template: >-
+          {% set r = value_json | selectattr('name', 'equalto', 'Raum A') | list | first | default(none) %}
+          {% if r and r.belegt and r.nutzer and r.nutzer != 'Anwesend' %}on{% else %}off{% endif %}
+
+      - name: "Buchung aktiv B"
+        unique_id: "rs_buchung_b"
+        value_template: >-
+          {% set r = value_json | selectattr('name', 'equalto', 'Raum B') | list | first | default(none) %}
+          {% if r and r.belegt and r.nutzer and r.nutzer != 'Anwesend' %}on{% else %}off{% endif %}
+
+      - name: "Buchung aktiv C"
+        unique_id: "rs_buchung_c"
+        value_template: >-
+          {% set r = value_json | selectattr('name', 'equalto', 'Raum C') | list | first | default(none) %}
+          {% if r and r.belegt and r.nutzer and r.nutzer != 'Anwesend' %}on{% else %}off{% endif %}
+
+      - name: "Buchung aktiv D"
+        unique_id: "rs_buchung_d"
+        value_template: >-
+          {% set r = value_json | selectattr('name', 'equalto', 'Raum D') | list | first | default(none) %}
+          {% if r and r.belegt and r.nutzer and r.nutzer != 'Anwesend' %}on{% else %}off{% endif %}
+
+
+# ===================================================
+# REST-COMMAND — HA ruft Flask-Endpoint zum Freigeben
+# Aufruf: service: rest_command.raum_frei  data: { raum_id: raum_a }
+# ===================================================
+rest_command:
+  raum_frei:
+    url: "http://192.168.1.211:5000/raum/{{ raum_id }}/frei"
+    method: POST

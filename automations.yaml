@@ -1,0 +1,42 @@
+# ===================================================
+# No-Show Auto-Release Automation (Pi 4 / Home Assistant)
+# In automations.yaml einfügen (bzw. via UI -> "In YAML bearbeiten")
+# ===================================================
+# Logik: Buchungs-REST-Sensor wechselt auf "on" -> max. 10 Min auf
+# Anwesenheit warten -> wenn niemand kommt + Buchung noch aktiv ->
+# rest_command.raum_frei aufrufen + HA-Notification.
+#
+# Test-Tipp: timeout erst auf "00:00:30" setzen, nach erfolgreichem
+# Test zurück auf "00:10:00".
+# ===================================================
+
+- alias: "No-Show Auto-Release (10 Min)"
+  description: "Storniert Buchung wenn 10 Min nach Start niemand erscheint"
+  trigger:
+    - platform: state
+      entity_id:
+        - sensor.buchung_aktiv_a
+        - sensor.buchung_aktiv_b
+        - sensor.buchung_aktiv_c
+        - sensor.buchung_aktiv_d
+      to: "on"
+  variables:
+    raum_short: "{{ trigger.entity_id.split('_')[-1] }}"
+    raum_id: "raum_{{ raum_short }}"
+    anwesenheit_entity: "binary_sensor.anwesenheit_raum_{{ raum_short }}"
+  action:
+    - wait_template: "{{ is_state(anwesenheit_entity, 'on') }}"
+      timeout: "00:10:00"
+      continue_on_timeout: true
+    - condition: template
+      value_template: >-
+        {{ is_state(anwesenheit_entity, 'off') and is_state(trigger.entity_id, 'on') }}
+    - service: rest_command.raum_frei
+      data:
+        raum_id: "{{ raum_id }}"
+    - service: persistent_notification.create
+      data:
+        title: "Auto-Release"
+        message: "Buchung in Raum {{ raum_short | upper }} wegen No-Show storniert."
+  mode: parallel
+  max: 4

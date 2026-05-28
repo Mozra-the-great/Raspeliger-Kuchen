@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raumverwaltung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <header class="header">
+        <div class="logo">
+            <span class="logo-icon">🏢</span>
+            <h1>Raumverwaltung</h1>
+        </div>
+        <div class="clock" id="clock">--:--:--</div>
+    </header>
+
+    <main class="main-grid">
+
+        <section class="left-column">
+
+            <div class="info-card weather-card">
+                <div class="info-card-header">
+                    <span class="info-card-title">Wetter Stuttgart</span>
+                    <span class="info-card-update" id="weather-update">–</span>
+                </div>
+                <div class="weather-main">
+                    <span class="weather-icon" id="weather-icon">☀️</span>
+                    <div class="weather-temp">
+                        <span class="weather-value" id="weather-temp">--</span><span class="weather-unit">°C</span>
+                        <div class="weather-text" id="weather-text">Lade...</div>
+                    </div>
+                </div>
+                <div class="weather-meta">
+                    <span>Gefühlt <strong id="weather-feels">--°</strong></span>
+                    <span>💨 <strong id="weather-wind">-- km/h</strong></span>
+                    <span>💧 <strong id="weather-humidity">--%</strong></span>
+                </div>
+                <div class="weather-forecast" id="weather-forecast"></div>
+            </div>
+
+            <div class="info-card day-card">
+                <div class="info-card-header">
+                    <span class="info-card-title">Tag</span>
+                </div>
+                <div class="day-grid">
+                    <div class="day-item">
+                        <span class="day-icon">🌅</span>
+                        <div>
+                            <div class="day-label">Aufgang</div>
+                            <div class="day-value" id="sunrise">--:--</div>
+                        </div>
+                    </div>
+                    <div class="day-item">
+                        <span class="day-icon">🌇</span>
+                        <div>
+                            <div class="day-label">Untergang</div>
+                            <div class="day-value" id="sunset">--:--</div>
+                        </div>
+                    </div>
+                    <div class="day-item">
+                        <span class="day-icon">☀️</span>
+                        <div>
+                            <div class="day-label">UV-Index</div>
+                            <div class="day-value" id="uv">--</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card traffic-card" id="traffic-card">
+                <div class="info-card-header">
+                    <span class="info-card-title">Verkehr Stuttgart</span>
+                    <span class="traffic-badge" id="traffic-badge">--</span>
+                </div>
+                <div class="traffic-status">
+                    <span class="traffic-light" id="traffic-light"></span>
+                    <div class="traffic-info">
+                        <div class="traffic-label" id="traffic-label">Lade...</div>
+                        <div class="traffic-desc" id="traffic-desc">–</div>
+                    </div>
+                </div>
+                <ul class="traffic-details" id="traffic-details"></ul>
+            </div>
+
+        </section>
+
+        <section class="rooms">
+            <h2 class="section-title">Räume <span class="hint">(antippen für Details)</span></h2>
+            <div class="room-grid" id="room-grid"></div>
+            <button class="btn-primary" id="btn-new-booking">+ Neue Buchung</button>
+        </section>
+
+    </main>
+
+    <div class="modal" id="booking-modal">
+        <div class="modal-content">
+            <h2>Neue Buchung</h2>
+
+            <label>Raum</label>
+            <select id="input-raum">
+                <option value="Raum A">Raum A</option>
+                <option value="Raum B">Raum B</option>
+                <option value="Raum C">Raum C</option>
+                <option value="Raum D">Raum D</option>
+            </select>
+
+            <label>Name</label>
+            <select id="input-nutzer">
+                <option value="" disabled selected>— bitte wählen —</option>
+                <option value="Nick">Nick</option>
+                <option value="Moritz">Moritz</option>
+                <option value="Niklas">Niklas</option>
+                <option value="Robin">Robin</option>
+            </select>
+
+            <label>Datum</label>
+            <select id="input-datum"></select>
+
+            <label>Von</label>
+            <select id="input-start"></select>
+
+            <label>Bis</label>
+            <select id="input-ende"></select>
+
+            <div class="modal-buttons">
+                <button class="btn-secondary" id="btn-cancel">Abbrechen</button>
+                <button class="btn-primary" id="btn-save">Buchen</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}?v=2"></script>
+</body>
+</html>

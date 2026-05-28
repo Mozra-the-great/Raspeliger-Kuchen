@@ -1,0 +1,467 @@
+/* ============================================
+   Raum-Detail-Seite v3 - strikt 100vh
+   Alles in einem Grid, nichts scrollt
+   ============================================ */
+
+* { box-sizing: border-box; }
+
+.detail-page {
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    gap: 0.8vh 1vw;
+    padding: 1vh 1vw;
+    background: #0f172a;
+    overflow: hidden;
+}
+
+/* HEADER (Zeile 1, volle Breite) */
+.detail-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 0.5vh;
+    border-bottom: 1px solid #1e293b;
+}
+
+.back-btn {
+    background: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+    padding: 0.6vh 1.2vw;
+    border-radius: 8px;
+    font-size: clamp(12px, 1.7vh, 16px);
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 38px;
+    transition: all 0.15s;
+}
+
+.back-btn:hover { background: #253042; }
+.back-btn:active { transform: scale(0.97); }
+.back-btn span { font-size: 1.3em; line-height: 0.8; }
+
+.detail-title {
+    font-size: clamp(16px, 2.6vh, 24px);
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0;
+}
+
+.detail-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-badge {
+    font-size: clamp(9px, 1.3vh, 12px);
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.status-badge.frei { background: #16a34a; color: #052e13; }
+.status-badge.belegt { background: #ef4444; color: #450a0a; }
+
+.detail-clock {
+    font-size: clamp(14px, 2vh, 20px);
+    font-weight: 600;
+    color: #38bdf8;
+    font-variant-numeric: tabular-nums;
+}
+
+/* DETAIL-GRID Container (innerhalb body) - dummy */
+.detail-grid { display: contents; }
+
+/* SENSOR-ROW (Zeile 2, volle Breite) */
+.sensor-row {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 0.8vw;
+    padding: 0.6vh 0.8vw !important;
+}
+
+.mini-sensor {
+    display: flex;
+    align-items: center;
+    gap: 0.8vw;
+    background: #0f172a;
+    border: 1px solid #2a3548;
+    border-radius: 8px;
+    padding: 0.5vh 0.8vw;
+    min-width: 0;
+}
+
+.mini-icon {
+    font-size: clamp(20px, 3.2vh, 30px);
+    flex-shrink: 0;
+}
+
+.mini-label {
+    font-size: clamp(9px, 1.2vh, 11px);
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    line-height: 1.1;
+}
+
+.mini-value {
+    font-size: clamp(18px, 3vh, 28px);
+    font-weight: 700;
+    color: #f1f5f9;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+}
+
+.mini-unit {
+    font-size: 0.55em;
+    color: #94a3b8;
+    margin-left: 3px;
+    font-weight: 400;
+}
+
+/* MITTLERE ZEILE: Chart links, Buchungen rechts */
+.chart-card {
+    grid-column: 1;
+    grid-row: 3;
+}
+.bookings-card {
+    grid-column: 2;
+    grid-row: 3;
+}
+
+/* STEUERUNG + AKTIONEN (Zeile 4 & 5, volle Breite) */
+.control-card {
+    grid-column: 1 / -1;
+    grid-row: 4;
+}
+.actions-card {
+    grid-column: 1 / -1;
+    grid-row: 5;
+}
+
+/* CARD BASIS */
+.card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 0.7vh 0.8vw;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4vh;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.card-title {
+    font-size: clamp(9px, 1.3vh, 12px);
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin: 0 0 0.3vh 0;
+    flex-shrink: 0;
+}
+
+/* CHART */
+.chart-card canvas {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+}
+
+.chart-legend {
+    display: flex;
+    gap: 0.8vw;
+    font-size: clamp(8px, 1.1vh, 10px);
+    color: #94a3b8;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+}
+
+.chart-legend i {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    margin-right: 3px;
+    vertical-align: middle;
+}
+
+/* BUCHUNGEN */
+.bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 0;
+}
+
+.booking-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.5vh 0.6vw;
+    background: #0f172a;
+    border-radius: 6px;
+    border-left: 3px solid #38bdf8;
+}
+
+.booking-item.aktiv {
+    border-left-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.booking-item.vorbei {
+    border-left-color: #475569;
+    opacity: 0.55;
+}
+
+.booking-item.geplant {
+    border-left-color: #38bdf8;
+}
+
+.bk-badge {
+    font-size: clamp(8px, 1.1vh, 10px);
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-left: auto;
+}
+
+.bk-badge.aktiv { background: #ef4444; color: #450a0a; }
+.bk-badge.vorbei { background: #334155; color: #94a3b8; }
+
+.bk-cancel {
+    background: transparent;
+    color: #64748b;
+    border: 1px solid #475569;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bk-cancel:hover {
+    background: #ef4444;
+    color: white;
+    border-color: #ef4444;
+}
+
+.bk-cancel:active { transform: scale(0.9); }
+
+.booking-time {
+    font-family: monospace;
+    font-size: clamp(10px, 1.4vh, 13px);
+    color: #94a3b8;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.booking-user {
+    font-size: clamp(11px, 1.5vh, 14px);
+    color: #f1f5f9;
+    font-weight: 600;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.no-bookings {
+    color: #64748b;
+    font-style: italic;
+    padding: 8px;
+    text-align: center;
+    font-size: clamp(11px, 1.5vh, 13px);
+}
+
+/* STEUERUNG - sehr kompakt */
+.control-card { padding: 0.5vh 0.8vw !important; }
+
+.control-row {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    gap: 0.8vw;
+    align-items: center;
+    padding: 0.3vh 0;
+    border-bottom: 1px solid #2a3548;
+}
+
+.control-row:last-child { border-bottom: none; padding-bottom: 0; }
+.control-row:first-of-type { padding-top: 0; }
+
+.control-icon { font-size: clamp(16px, 2.2vh, 20px); }
+
+.control-label {
+    font-size: clamp(10px, 1.4vh, 13px);
+    color: #cbd5e1;
+    font-weight: 600;
+    min-width: 50px;
+}
+
+.control-buttons {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.ctrl-btn {
+    background: #0f172a;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+    padding: 0.4vh 0.8vw;
+    border-radius: 5px;
+    font-size: clamp(9px, 1.3vh, 12px);
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.4px;
+    transition: all 0.15s;
+    min-height: 32px;
+    min-width: 44px;
+}
+
+.ctrl-btn:hover { background: #253042; color: #f1f5f9; }
+.ctrl-btn:active { transform: scale(0.96); }
+.ctrl-btn.active { background: #16a34a; color: white; border-color: #15803d; }
+.ctrl-btn.active-warm { background: #dc2626; color: white; border-color: #b91c1c; }
+.ctrl-btn.active-cool { background: #38bdf8; color: #0f172a; border-color: #0ea5e9; }
+
+.control-state {
+    font-size: clamp(9px, 1.2vh, 11px);
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 600;
+    min-width: 45px;
+    text-align: right;
+}
+
+.temp-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #cbd5e1;
+    font-size: clamp(10px, 1.4vh, 12px);
+    font-weight: 600;
+}
+
+.temp-btn {
+    background: #0f172a;
+    color: #f1f5f9;
+    border: 1px solid #334155;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    line-height: 1;
+}
+
+.temp-btn:active { transform: scale(0.9); }
+
+.temp-soll {
+    font-size: clamp(13px, 1.8vh, 16px);
+    color: #f1f5f9;
+    font-variant-numeric: tabular-nums;
+    min-width: 26px;
+    text-align: center;
+    font-weight: 700;
+}
+
+/* SCHNELL-AKTIONEN */
+.actions-card { padding: 0.5vh 0.8vw !important; }
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6vw;
+}
+
+.action-btn {
+    background: #38bdf8;
+    color: #0f172a;
+    border: none;
+    padding: 0.7vh 0;
+    border-radius: 6px;
+    font-size: clamp(11px, 1.6vh, 14px);
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    min-height: 38px;
+}
+
+.action-btn:hover { background: #0ea5e9; }
+.action-btn:active { transform: scale(0.97); }
+
+.checkin-btn { background: #16a34a; color: white; }
+.checkin-btn:hover { background: #15803d; }
+.checkin-btn.checked {
+    background: #15803d;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* TOAST */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(120px);
+    background: #1e293b;
+    color: #f1f5f9;
+    padding: 10px 22px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transition: transform 0.3s ease;
+    z-index: 1000;
+}
+
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: #16a34a; }
+.toast.error { border-color: #ef4444; }
+
+/* Section-titles ausblenden auf detail page */
+.detail-page .section-title { display: none; }
+
+/* Sehr kleine Touchscreens (480px) */
+@media (max-height: 520px) {
+    .detail-title { font-size: 14px; }
+    .mini-icon { font-size: 18px; }
+    .mini-value { font-size: 16px; }
+    .control-state { display: none; }
+    .ctrl-btn { padding: 0.3vh 0.5vw; min-height: 28px; min-width: 38px; }
+    .action-btn { min-height: 30px; font-size: 11px; }
+}

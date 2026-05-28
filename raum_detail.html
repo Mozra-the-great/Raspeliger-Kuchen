@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ raum_name }} – Detail</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='detail.css') }}">
+    <style>
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+        .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+
+        /* Komfort-Spalte: keinerlei Scrollbar */
+        .komfort-card {
+            overflow: visible;
+        }
+
+        /* Kompakte Info-Cards */
+        .info-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(15,20,33,.4);
+            border: 1px solid #1e293b;
+            transition: all .3s;
+            min-height: 0;
+        }
+        .info-icon { font-size: 32px; line-height: 1; }
+        .info-title { font-size: 16px; font-weight: 700; letter-spacing: 0.6px; color: #e2e8f0; text-align: center; }
+        .info-sub { display: flex; align-items: center; gap: 5px; font-size: 9px; color: #64748b; letter-spacing: 1.2px; text-transform: uppercase; }
+        .info-foot { font-size: 10px; color: #64748b; margin-top: 1px; }
+
+        /* Bookings-Card: kein Scrollbar, Kinder nicht stretchen */
+        .bookings-card > * {
+            flex: 0 0 auto !important;
+        }
+    </style>
+</head>
+<body data-raum-id="{{ raum_id }}" data-raum-name="{{ raum_name }}">
+
+<div class="detail-page">
+
+    <header class="detail-header">
+        <button class="back-btn" onclick="window.location.href='/'">
+            <span>←</span> Zurück
+        </button>
+        <h1 class="detail-title">{{ raum_name }}</h1>
+        <div class="detail-status">
+            <span id="raum-status-badge" class="status-badge frei">FREI</span>
+            <span id="clock" class="detail-clock">--:--:--</span>
+        </div>
+    </header>
+
+    <div class="detail-grid">
+
+        <section class="card sensor-row">
+            <div class="mini-sensor">
+                <span class="mini-icon">🌡️</span>
+                <div style="flex:1;">
+                    <div class="mini-label">Temperatur</div>
+                    <div class="mini-value"><span id="d-temp">--</span><span class="mini-unit">°C</span></div>
+                    <div id="d-temp-msg" style="font-size:11px;color:#fbbf24;margin-top:4px;min-height:14px;"></div>
+                </div>
+                <div id="d-temp-status" style="display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.3px;white-space:nowrap;"></div>
+            </div>
+            <div class="mini-sensor">
+                <span class="mini-icon">💧</span>
+                <div style="flex:1;">
+                    <div class="mini-label">Luftfeuchte</div>
+                    <div class="mini-value"><span id="d-hum">--</span><span class="mini-unit">%</span></div>
+                    <div id="d-hum-msg" style="font-size:11px;color:#fbbf24;margin-top:4px;min-height:14px;"></div>
+                </div>
+                <div id="d-hum-status" style="display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.3px;white-space:nowrap;"></div>
+            </div>
+            <div class="mini-sensor">
+                <span class="mini-icon">🌬️</span>
+                <div style="flex:1;">
+                    <div class="mini-label">CO₂</div>
+                    <div class="mini-value"><span id="d-co2">--</span><span class="mini-unit">ppm</span></div>
+                    <div id="d-co2-msg" style="font-size:11px;color:#fbbf24;margin-top:4px;min-height:14px;"></div>
+                </div>
+                <div id="d-co2-status" style="display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;font-size:11px;font-weight:500;letter-spacing:.3px;white-space:nowrap;"></div>
+            </div>
+        </section>
+
+        <section class="komfort-card" style="display:flex;flex-direction:column;gap:10px;background:transparent;border:none;padding:0;">
+
+            <div class="info-card">
+                <div class="info-icon">📅</div>
+                <div id="datum-weekday" class="info-title">--</div>
+                <div class="info-sub">
+                    <span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#94a3b8;"></span>
+                    Aktuelles Datum
+                </div>
+                <div id="datum-info" class="info-foot">—</div>
+            </div>
+
+            <div id="presence-card" class="info-card">
+                <div id="presence-icon" class="info-icon">⏳</div>
+                <div id="presence-status" class="info-title" style="color:#94a3b8;">LADE…</div>
+                <div class="info-sub">
+                    <span id="presence-pulse" class="pulse-dot" style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#64748b;"></span>
+                    Kamera-KI · Pi 1
+                </div>
+                <div id="presence-last" class="info-foot">—</div>
+            </div>
+
+        </section>
+
+        <section class="card bookings-card">
+            <h3 class="card-title">Belegung</h3>
+
+            <div style="margin-top:6px;">
+                <div id="label-today" style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">HEUTE</div>
+                <div id="bookings-today"></div>
+            </div>
+
+            <div style="margin-top:10px;">
+                <div id="label-tomorrow" style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">MORGEN</div>
+                <div id="bookings-tomorrow"></div>
+            </div>
+
+            <div style="margin-top:10px;">
+                <div style="font-size:11px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;">Weitere Tage</div>
+                <div id="date-tabs" style="display:flex;gap:5px;overflow-x:auto;margin-bottom:4px;padding-bottom:2px;-webkit-overflow-scrolling:touch;"></div>
+                <div id="bookings-future"></div>
+            </div>
+        </section>
+
+        <section class="card control-card">
+            <h3 class="card-title">Steuerung</h3>
+
+            <div class="control-row">
+                <span class="control-icon">💡</span>
+                <span class="control-label">Licht</span>
+                <div class="control-buttons">
+                    <button class="ctrl-btn" data-licht="on">AN</button>
+                    <button class="ctrl-btn" data-licht="off">AUS</button>
+                </div>
+                <span class="control-state" id="state-licht">--</span>
+            </div>
+
+            <div class="control-row">
+                <span class="control-icon">🪟</span>
+                <span class="control-label">Rollos</span>
+                <div class="control-buttons">
+                    <button class="ctrl-btn" data-rollo="up">↑ HOCH</button>
+                    <button class="ctrl-btn" data-rollo="stop">■ STOP</button>
+                    <button class="ctrl-btn" data-rollo="down">↓ RUNTER</button>
+                </div>
+                <span class="control-state" id="state-rollo">--</span>
+            </div>
+
+            <div class="control-row">
+                <span class="control-icon">🌡️</span>
+                <span class="control-label">Klima</span>
+                <div class="control-buttons">
+                    <button class="ctrl-btn" data-klima="heat">HEIZEN</button>
+                    <button class="ctrl-btn" data-klima="cool">KÜHLEN</button>
+                    <button class="ctrl-btn" data-klima="off">AUS</button>
+                </div>
+                <div class="temp-control">
+                    Soll: <button class="temp-btn" id="temp-down">−</button>
+                    <span class="temp-soll" id="state-klima-soll">22</span>°C
+                    <button class="temp-btn" id="temp-up">+</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="card actions-card">
+            <h3 class="card-title">Schnell-Aktionen</h3>
+            <div class="actions-grid">
+                <button class="action-btn" data-quick="30">+ 30 MIN</button>
+                <button class="action-btn" data-quick="60">+ 1 STUNDE</button>
+                <button class="action-btn" data-quick="120">+ 2 STUNDEN</button>
+                <button class="action-btn checkin-btn" id="btn-checkin">✓ CHECK-IN</button>
+            </div>
+        </section>
+
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+</div>
+
+<script src="{{ url_for('static', filename='detail.js') }}?v=12"></script>
+</body>
+</html>
