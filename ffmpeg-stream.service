@@ -1,0 +1,12 @@
+[Unit]
+Description=Kamera UDP Stream zu JPEG
+After=network-online.target
+
+[Service]
+ExecStart=ffmpeg -fflags nobuffer -i udp://@:9000 -vf fps=5 -f image2 -update 1 -y /tmp/frame.jpg
+Restart=always
+RestartSec=5
+User=raspi
+
+[Install]
+WantedBy=multi-user.target

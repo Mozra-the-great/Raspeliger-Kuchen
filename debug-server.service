@@ -1,0 +1,12 @@
+[Unit]
+Description=Kamera Debug Webserver
+After=network-online.target ffmpeg-stream.service
+
+[Service]
+ExecStart=/usr/bin/python3 /home/raspi/debug_server.py
+Restart=always
+RestartSec=5
+User=raspi
+
+[Install]
+WantedBy=multi-user.target

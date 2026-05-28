@@ -1,0 +1,18 @@
+[Unit]
+Description=Sensor MQTT Sender
+After=network-online.target pigpiod.service
+Wants=network-online.target
+Requires=pigpiod.service
+
+[Service]
+Type=simple
+User=raspi
+WorkingDirectory=/home/raspi
+ExecStart=/usr/bin/python3 /home/raspi/sensor_mqtt.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

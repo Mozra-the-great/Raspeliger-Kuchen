@@ -1,0 +1,12 @@
+[Unit]
+Description=Kamera UDP Stream
+After=network.target
+
+[Service]
+ExecStart=rpicam-vid -t 0 --inline --width 1920 --height 1080 --framerate 30 -o udp://192.168.1.211:9000
+Restart=always
+RestartSec=5
+User=raspi
+
+[Install]
+WantedBy=multi-user.target
