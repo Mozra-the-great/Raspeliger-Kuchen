@@ -648,9 +648,3 @@ CREATE TABLE sensordaten (
 
 Für Produktion: `ha_automations_prod_v1.yaml` in HA laden.
 Für Tests: `ha_automations_test_v2.yaml` (kürzere Timeouts).
-
----
-
-## Noch fehlende Dateien
-
-Siehe nächsten Abschnitt — vollständige Checkliste was noch vom Pi geholt werden muss.
