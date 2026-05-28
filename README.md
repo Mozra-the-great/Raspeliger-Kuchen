@@ -25,7 +25,7 @@ Das System verwaltet vier Meetingräume (A–D) und verbindet Buchungslogik, Umg
 | Pi 2 — Datenbank | 192.168.1.206 | MariaDB 11.8.6, Mosquitto MQTT-Broker, Raumfreigabe-Logik | — |
 | Pi 3 — Sensorik | 192.168.1.233 | DHT22, SCD30 (CO₂), Kamera-Modul, UDP-Stream | I²C (`dtparam=i2c_arm=on`), CSI-Kamera (`camera_auto_detect=1`) |
 | Pi 4 — Automatisierung | 192.168.1.210 | Home Assistant OS (Port 8123) | kein SSH (Web-UI + File-Editor-Add-on) |
-| Pi 5 — GUI | 192.168.1.232 | Touchscreen-Kiosk (Chromium, labwc/Wayland) | Touchscreen WaveShare WS170120 (800×480, kapazitiv, HDMI-A-2) |
+| Pi 5 — GUI | 192.168.1.232 | Touchscreen-Kiosk (Chromium, labwc/Wayland) | Touchscreen (kapazitiv, HDMI-A-2) |
 
 Netzwerk: alle Pis statisch über NetworkManager (`Wired connection 1`), Gateway 192.168.1.3, DNS 1.1.1.1 + 8.8.8.8.
 
