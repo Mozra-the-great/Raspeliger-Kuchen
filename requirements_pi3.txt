@@ -1,0 +1,20 @@
+# Pi 3 (Sensorik) — Python Pakete
+# Verifiziert am 2026-05-28 via pip3 freeze
+#
+# Verwendet von:
+#   - sensor_mqtt.py    (pigpio, paho-mqtt, adafruit-circuitpython-scd30, board)
+#   - DHT22.py          (pigpio — eigene Klasse, kein Adafruit-DHT)
+#   - test_co2.py       (adafruit-circuitpython-scd30)
+#   - test_dht.py       (pigpio)
+#
+# Installation auf Pi 3:
+#   pip3 install -r requirements_pi3.txt --break-system-packages
+#
+# Zusaetzlich systemd-Service: pigpiod.service muss aktiv sein
+#   sudo apt install pigpio
+#   sudo systemctl enable --now pigpiod
+
+paho-mqtt
+pigpio
+adafruit-circuitpython-scd30
+adafruit-blinka

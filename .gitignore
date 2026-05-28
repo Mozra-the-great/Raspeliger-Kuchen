@@ -1,4 +1,9 @@
 config.py
+secrets.yaml
+PDF_KORREKTUREN.md
+PDF_KORREKTUREN_v2.md
+DAS_MUSS_NOCH_GEMACHT_WERDEN.md
+.claude
 __pycache__/
 *.pyc
 *.pyo
@@ -6,3 +11,10 @@ __pycache__/
 .env
 *.log
 /tmp/
+
+# Pi 2 Mosquitto credentials (Hashes nicht im Repo)
+pi2/mosquitto/passwd
+
+# Editor backups
+*.bak
+*.save

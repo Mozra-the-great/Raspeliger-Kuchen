@@ -1,0 +1,15 @@
+#!/bin/sh
+# Warten bis Netzwerk und Webserver bereit sind
+sleep 10
+
+# Chromium im Kiosk-Mode starten
+chromium \
+  --kiosk \
+  --noerrdialogs \
+  --disable-infobars \
+  --disable-session-crashed-bubble \
+  --disable-features=TranslateUI \
+  --check-for-update-interval=31536000 \
+  --password-store=basic \
+  --app=http://192.168.1.211:5000 &chromium http://192.168.1.211:5000 --kiosk --noerrdialogs --disable-infobars --no-first-run --enable-features=OverlayScrollbar --start-maximized &
+~/switchtab.sh

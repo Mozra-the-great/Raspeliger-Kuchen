@@ -1,0 +1,21 @@
+# Pi 1 (Webserver) — Python Pakete
+# Verifiziert am 2026-05-28 via pip3 freeze
+#
+# Verwendet von:
+#   - app.py            (Flask, pymysql, paho-mqtt)
+#   - person_detection.py (cv2, numpy, paho-mqtt, hailo_platform)
+#   - debug_server.py   (cv2, Flask)
+#
+# Installation auf Pi 1:
+#   pip3 install -r requirements_pi1.txt --break-system-packages
+
+Flask==3.0.0
+pymysql
+paho-mqtt
+opencv-python
+numpy
+
+# Hailo-8L Stack (vom hailo-all-Paket bzw. apt installiert,
+# nicht pip — hier nur zur Versionsreferenz aufgefuehrt)
+# hailort==4.23.0
+# hailo-tappas-core-python-binding==5.1.0

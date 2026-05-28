@@ -54,11 +54,28 @@ Dezentrales IoT-System zur intelligenten Raumverwaltung mit Buchungen, KI-basier
 
 | Node | IP | Rolle |
 |---|---|---|
-| Pi 1 — Webserver | 192.168.1.211 | Flask :5000, Hailo-8 KI, FFmpeg-Empfänger |
+| Pi 1 — Webserver | 192.168.1.211 | Flask :5000, Hailo-8L KI, FFmpeg-Empfänger, Debug-Server :5001 |
 | Pi 2 — Datenbank | 192.168.1.206 | MariaDB :3306, MQTT Broker :1883 |
 | Pi 3 — Sensorik | 192.168.1.233 | DHT22, SCD30, Kamera-Streamer (UDP) |
 | Pi 4 — Automatisierung | 192.168.1.210 | Home Assistant :8123 |
-| Pi 5 — GUI | 192.168.1.232 | Touchscreen-Kiosk (Chromium) |
+| Pi 5 — GUI | 192.168.1.232 | Touchscreen-Kiosk (Chromium, labwc) |
+
+**Statische IPs via NetworkManager** (verifiziert 2026-05-28). Alle Pis nutzen Profil `Wired connection 1` auf `eth0`:
+- `ipv4.method = manual`
+- Gateway: `192.168.1.3`
+- DNS: `1.1.1.1, 8.8.8.8` (Pi 5 hat nur `1.1.1.1`)
+
+Beispiel-Konfiguration für einen neuen Pi:
+```bash
+sudo nmcli con modify "Wired connection 1" \
+  ipv4.method manual \
+  ipv4.addresses 192.168.1.XXX/24 \
+  ipv4.gateway 192.168.1.3 \
+  ipv4.dns "1.1.1.1,8.8.8.8"
+sudo nmcli con up "Wired connection 1"
+```
+
+> Hinweis: Auf neueren Raspberry-Pi-OS-Versionen (Bookworm/Trixie) wird NetworkManager statt `dhcpcd` verwendet. `/etc/dhcpcd.conf` existiert dort nicht mehr.
 
 ---
 
@@ -88,9 +105,9 @@ state/raum_a/rollo            → aktueller Zustand
 
 ---
 
-## Flask REST API (Pi 4 :5000)
+## Flask REST API (Pi 1 :5000)
 
-Verifiziert aus `app.py`. Flask-Verzeichnis auf Pi 4: `/home/raspi/dashboard_mariadb/`
+Verifiziert aus `app.py`. Flask-Verzeichnis auf Pi 1: `/home/raspi/dashboard_mariadb/`
 
 ```
 GET  /
@@ -168,9 +185,9 @@ POST /raum/<raum_name>/frei
 
 ## Dateien
 
-### `app.py` — Flask-Backend (Pi 4)
+### `app.py` — Flask-Backend (Pi 1)
 
-Zentrale Backend-Anwendung. Version 3. Liegt auf Pi 4 unter `/home/raspi/dashboard_mariadb/app.py`.
+Zentrale Backend-Anwendung. Version 3. Liegt auf Pi 1 unter `/home/raspi/dashboard_mariadb/app.py`.
 
 **Importiert aus `config.py`:**
 ```python
@@ -235,11 +252,11 @@ Auto-Release läuft trotzdem. Nur MQTT-Anwesenheitserkennung schreibt in die DB.
 
 ---
 
-### `config.py` — Konfiguration (Pi 4, **fehlt noch im Repo**)
+### `config.py` — Konfiguration (Pi 1, gitignored)
 
-Liegt unter `/home/raspi/dashboard_mariadb/config.py`. Enthält alle Secrets und Einstellungen die `app.py` importiert. **Muss noch aus dem Pi kopiert werden** (oder mit Dummy-Werten neu erstellt werden).
+Liegt unter `/home/raspi/dashboard_mariadb/config.py`. Enthält alle Secrets und Einstellungen die `app.py` importiert. Ist via `.gitignore` ausgeschlossen — `config.example.py` dient als sanitisiertes Template.
 
-Erwartete Struktur:
+Tatsächliche Struktur:
 ```python
 DB_CONFIG = {
     "host": "localhost",
@@ -364,12 +381,12 @@ Zusätzlich: "Buchung Ende" (Trigger: `buchung_aktiv_x` → `"off"`, Alles aus w
 
 ### `index.html` — Haupt-Dashboard
 
-Flask-Template (`render_template("index.html")`). Kiosk-Ansicht auf Pi 2.
+Flask-Template (`render_template("index.html")`). Kiosk-Ansicht auf Pi 5.
 
 Linke Spalte: Wetter Stuttgart, 3-Tage-Forecast, Sonnenauf/-untergang + UV, Verkehr
 Rechte Spalte: 4 Raumkarten (Frei/Belegt, Nutzer, bis, nächste Buchung), Buchungsmodal
 
-Flask erwartet dieses File unter `/home/raspi/dashboard_mariadb/templates/index.html`
+Im Repo unter `templates/index.html`. Auf Pi 1 deployed nach `/home/raspi/dashboard_mariadb/templates/index.html`.
 
 ---
 
@@ -380,7 +397,19 @@ Flask-Template, aufgerufen von `GET /raum/<raum_id>`.
 
 Sektionen: Header + Status-Badge, Sensoren-Zeile (3 Mini-Cards), Komfort-Card (Datum/KW + Anwesenheit), Buchungs-Timeline (3 Tabs), Steuerung (Licht/Rollo/Klima), Schnell-Aktionen, Toast
 
-Flask erwartet dieses File unter `/home/raspi/dashboard_mariadb/templates/raum_detail.html`
+Im Repo unter `templates/raum_detail.html`. Auf Pi 1 deployed nach `/home/raspi/dashboard_mariadb/templates/raum_detail.html`.
+
+---
+
+### `style.css` — Styling Haupt-Dashboard
+
+Dark Theme (`#0f172a` / `#1e293b`). Adaptives Layout für Touchscreen 800×480 und Laptop-Browser, vollständig responsive via `clamp()`, `vw`, `vh` — keine Media-Queries für Bildschirmbreite.
+
+Akzent: `#38bdf8` (cyan). Status-Farben: Frei/Belegt-Badges (`#16a34a`/`#ef4444`), Verkehr-Ampel (grün/gelb/rot).
+
+Buttons mind. 50 px hoch, touch-freundlich. Modal mit `backdrop-filter: blur(4px)`.
+
+Im Repo unter `static/style.css`. Auf Pi 1 deployed nach `/home/raspi/dashboard_mariadb/static/style.css`.
 
 ---
 
@@ -390,7 +419,7 @@ Dark Theme (`#0f172a` / `#1e293b`). Responsive via `clamp()` und Media-Query <52
 
 Farben: OK `#22c55e`, Warn `#fbbf24`, Kritisch `#ef4444`, Unbekannt `#64748b`, Akzent `#38bdf8`
 
-Auf Pi 4 unter `/home/raspi/dashboard_mariadb/static/detail.css`
+Im Repo unter `static/detail.css`. Auf Pi 1 deployed nach `/home/raspi/dashboard_mariadb/static/detail.css`.
 
 ---
 
@@ -407,7 +436,7 @@ Version `dropdowns-v2-20260527`. Polling-Intervalle:
 
 Buchungsmodal: `fuelleDatumOptionen()` (15 Tage), `fuelleZeitOptionen()` (8:00–18:00, 30-Min), `naechsteHalbeStunde()` (Vorauswahl). Speichern via `POST /buchen`.
 
-Auf Pi 4 unter `/home/raspi/dashboard_mariadb/static/dashboard.js`
+Im Repo unter `static/dashboard.js`. Auf Pi 1 deployed nach `/home/raspi/dashboard_mariadb/static/dashboard.js`.
 
 ---
 
@@ -433,7 +462,7 @@ Sensor-Schwellwerte:
 Timeline: Zeitbereich 07:00–20:00, Lane-System für Überlappungen, Jetzt-Linie (nur heute).
 Anwesenheit: `true` → 👤 blau, `false` → 🚪 grau, `null` → ⏳ grau.
 
-Auf Pi 4 unter `/home/raspi/dashboard_mariadb/static/detail.js`
+Im Repo unter `static/detail.js`. Auf Pi 1 deployed nach `/home/raspi/dashboard_mariadb/static/detail.js`.
 
 ---
 
@@ -453,7 +482,7 @@ HEF_PATH = "/usr/share/hailo-models/yolov8s_h8l.hef"
 
 ---
 
-### `sensor_mqtt.py` — Sensor-Publisher (Pi 33)
+### `sensor_mqtt.py` — Sensor-Publisher (Pi 3)
 
 DHT22 (GPIO 4) + SCD30 (I2C). Publiziert sekündlich an `sensor/raum_a/*`.
 Primary: SCD30, Fallback: DHT22. Je 10 Leseversuche mit Delay.
@@ -485,9 +514,66 @@ Ersetzte den alten Buchungs-Endpoint durch die datumsgefilterte Version mit Stat
 
 ---
 
-### `install_emoji.sh` — Einmaliges Setup (Pi 2)
+### `raeume_seed.sql` — Initialdaten Räume (Pi 2)
+
+INSERT-Statements für die `raeume`-Tabelle, weil `schema.sql` nur die Tabellendefinition enthält (mit `kapazitaet DEFAULT 4`). Reale Kapazitäten weichen ab:
+- Raum A: 6 Plätze
+- Raum B: 4 Plätze
+- Raum C: 8 Plätze
+- Raum D: 4 Plätze
+
+Einspielen nach `schema.sql`:
+```bash
+sudo mysql raumverwaltung < raeume_seed.sql
+```
+
+---
+
+### `pi2/mosquitto/mosquitto.conf` + `conf.d/default.conf` — MQTT-Broker (Pi 2)
+
+Spiegelung von `/etc/mosquitto/` auf Pi 2. Hauptkonfig lädt `conf.d/`. Listener auf 1883, `allow_anonymous false`, Auth über `/etc/mosquitto/passwd` (eine Zeile: `raspi:<hash>`).
+
+Persistence in `/var/lib/mosquitto/`, Logfile in `/var/log/mosquitto/mosquitto.log`.
+
+---
+
+### `pi3/boot_config.txt` — Pi 3 Boot-Konfiguration
+
+Spiegelung von `/boot/firmware/config.txt` auf Pi 3. Aktiviert I²C (für SCD30), Kamera (CSI auto-detect), und Grafiktreiber.
+
+---
+
+### `pi5/labwc-autostart` + `labwc-environment` + `labwc-rc.xml` — Touchscreen-Kiosk (Pi 5)
+
+Pi-5-Konfiguration für Wayland-Compositor `labwc`. Spiegelung von `~/.config/labwc/`:
+- `labwc-autostart` — Bash-Skript, startet Chromium-Kiosk auf `http://192.168.1.211:5000` nach 10 s Wait
+- `labwc-environment` — Setzt XKB-Layout `de` und `XCURSOR_SIZE=24`
+- `labwc-rc.xml` — Touchscreen-Mapping (`WaveShare WS170120` → `HDMI-A-2`, `mouseEmulation=yes`), Theme `PiXonyx`
+
+Siehe Sektion **"Pi 5 — Touchscreen-Kiosk"** oben für Hinweise zum Inhalt der Autostart-Datei.
+
+---
+
+### `requirements_pi1.txt` + `requirements_pi3.txt` — Python-Pakete
+
+Liste der pip-Pakete pro Pi (Flask, paho-mqtt, pymysql, opencv, numpy, hailort für Pi 1 — pigpio, adafruit-circuitpython-scd30, paho-mqtt, adafruit-blinka für Pi 3). Installation:
+```bash
+pip3 install -r requirements_piX.txt --break-system-packages
+```
+
+---
+
+### `secrets.example.yaml` — HA Secrets Template (Pi 4)
+
+Vorlage für `secrets.yaml` (echte Datei via `.gitignore` ausgeschlossen). Wird in HA mit `!secret <name>` referenziert.
+
+---
+
+### `install_emoji.sh` — Einmaliges Setup (Pi 5)
 
 Installiert `fonts-noto-color-emoji` + `fonts-symbola`, rebuildet Font-Cache, startet Chromium neu.
+
+> Hinweise: Im Kopfkommentar steht "Zielsystem: Pi 2 (192.168.1.232)" — IP 192.168.1.232 gehört aber zu Pi 5 (Pi 2 ist 192.168.1.206). Das Skript ruft am Ende `sudo systemctl restart kiosk` auf, ein `kiosk.service` existiert auf Pi 5 jedoch nicht (Chromium-Start läuft via labwc-autostart). Der Font-Install-Teil funktioniert davon unabhängig.
 
 ---
 
@@ -517,13 +603,13 @@ HA REST-Sensor (alle 30s) → GET /api/raeume
 ### Person erkannt → Auto-Check-in
 
 ```
-Pi 33 (kamera-stream.service):
+Pi 3 (kamera-stream.service):
   rpicam-vid → UDP 192.168.1.211:9000
 
-Pi 4 (ffmpeg-stream.service):
+Pi 1 (ffmpeg-stream.service):
   ffmpeg udp://@:9000 → /tmp/frame.jpg (5fps, immer überschrieben)
 
-Pi 4 (person-detection.service):
+Pi 1 (person-detection.service):
   person_detection.py liest /tmp/frame.jpg
   → Hailo-8 YOLOv8s Inferenz
   → /tmp/detections.json
@@ -564,7 +650,7 @@ AND storniert=FALSE ausgefiltert.
 ### Sensordaten anzeigen
 
 ```
-Pi 33 (sekündlich) → MQTT sensor/raum_a/temperatur|luftfeuchte|co2
+Pi 3 (sekündlich) → MQTT sensor/raum_a/temperatur|luftfeuchte|co2
   → app.py on_message() → sensor_cache["raum_a"]
 
 Detail-Frontend (10s): GET /api/sensoren/raum_a
@@ -630,23 +716,147 @@ CREATE TABLE sensordaten (
 
 **Nutzer (hardcoded im Frontend):** Nick, Moritz, Niklas, Robin
 
-**Räume:** Raum A, Raum B, Raum C, Raum D
+**Räume:** Raum A, Raum B, Raum C, Raum D mit realen Kapazitäten 6/4/8/4 (siehe `raeume_seed.sql`).
 - ID-Konvention: `"Raum A"` (DB/HA/control_state) ↔ `"raum_a"` (URL/MQTT/belegung_cache)
 - Nur Raum A hat vollständige Sensor-Entities in `configuration.yaml`
+
+> Hinweis: `schema.sql` setzt `kapazitaet INT DEFAULT 4` — die echten Werte (6/4/8/4) sind in `raeume_seed.sql` als INSERT versioniert.
 
 **Sondernutzer `"Anwesend"`:** Wird von `app.py` gesetzt wenn MQTT `occupied=true` aber keine aktive Buchung. Der HA REST-Sensor schließt diesen Wert explizit aus damit reine Kamera-Erkennungen keine Komfort-Automation triggern.
 
 ---
 
+## Pi 2 — MariaDB + Mosquitto
+
+### MariaDB
+
+- Version: 11.8.6 (Debian Trixie)
+- Datenbank: `raumverwaltung`
+- App-User: `raspi-db@%` (Wildcard-Host für Remote-Zugriff von Pi 1)
+- System-User: `mariadb.sys@localhost`, `mysql@localhost`, `root@localhost`
+- `bind-address = 0.0.0.0` (in `/etc/mysql/mariadb.conf.d/50-server.cnf`) damit Remote-Verbindungen funktionieren
+
+Setup (auf Pi 2 ausführen):
+```sql
+CREATE DATABASE raumverwaltung CHARACTER SET utf8mb4 COLLATE utf8mb4_uca1400_ai_ci;
+CREATE USER 'raspi-db'@'%' IDENTIFIED BY 'CHANGE_ME';
+GRANT ALL ON raumverwaltung.* TO 'raspi-db'@'%';
+FLUSH PRIVILEGES;
+```
+Anschließend `schema.sql` einspielen, dann `raeume_seed.sql`:
+```bash
+sudo mysql raumverwaltung < schema.sql
+sudo mysql raumverwaltung < raeume_seed.sql
+```
+
+### Mosquitto
+
+Konfiguration im Repo unter `pi2/mosquitto/` (Spiegelung von `/etc/mosquitto/` auf Pi 2):
+- `mosquitto.conf` — Hauptdatei, lädt `conf.d/*.conf`, persistence in `/var/lib/mosquitto/`, Log in `/var/log/mosquitto/mosquitto.log`
+- `conf.d/default.conf`:
+  ```
+  listener 1883
+  allow_anonymous false
+  password_file /etc/mosquitto/passwd
+  ```
+
+User in `/etc/mosquitto/passwd` (verifiziert via `sudo cut -d: -f1`):
+- `raspi` (Passwort identisch — siehe `config.py`, `sensor_mqtt.py`, `person_detection.py`)
+
+passwd-File anlegen (auf Pi 2):
+```bash
+sudo mosquitto_passwd -c /etc/mosquitto/passwd raspi
+sudo systemctl restart mosquitto
+```
+
+---
+
+## Pi 3 — Boot-Config
+
+Datei `pi3/boot_config.txt` spiegelt `/boot/firmware/config.txt` auf Pi 3. Relevante Einträge:
+- `dtparam=i2c_arm=on` — I²C für SCD30 (Sensor an Standard-I²C-Bus)
+- `camera_auto_detect=1` — automatische Erkennung des CSI-Kamera-Moduls
+- `dtoverlay=vc4-kms-v3d` — Grafiktreiber
+- **Kein UART-Overlay** — der ursprünglich geplante MH-Z19B (UART) wurde durch den SCD30 (I²C) ersetzt.
+
+`pigpiod`-Service muss aktiv sein (wird von `sensor.service` als Requirement geführt):
+```bash
+sudo apt install pigpio
+sudo systemctl enable --now pigpiod
+```
+
+---
+
+## Pi 1 — Hailo-8L Setup
+
+Verifiziert via `hailortcli fw-control identify`:
+- Board: "Hailo-8" (Family-Name; physisch ist es ein Hailo-8L)
+- Firmware: 4.23.0
+- Driver: 4.23.0 (`hailort==4.23.0`)
+- HEF-Modelle vorinstalliert unter `/usr/share/hailo-models/`
+
+Verwendetes Modell: `yolov8s_h8l.hef` (siehe `person_detection.py` Z. 13).
+Weitere vorinstallierte Modelle die nicht verwendet werden: `yolov8s_pose_h8l_pi.hef`, `yolov5s_personface_h8l.hef`, `scrfd_2.5g_h8l.hef`, `resnet_v1_50_h8l.hef`, `yolov6n_h8l.hef`, u.a. (21 HEFs insgesamt).
+
+Installation (auf Pi 1):
+```bash
+sudo apt install hailo-all          # zieht Treiber + hailort + Modelle
+hailortcli fw-control identify      # Test
+```
+M.2-HAT+ aktivieren erfordert PCIe-Eintrag in `/boot/firmware/config.txt` (`dtparam=pciex1`).
+
+---
+
+## Pi 5 — Touchscreen-Kiosk (labwc/Wayland)
+
+Pi 5 läuft auf Raspberry Pi OS Bookworm/Trixie mit **labwc** als Wayland-Compositor (Default seit Bookworm), nicht X11/LXDE. Konfiguration im Repo unter `pi5/`:
+
+- **`labwc-autostart`** (entspricht `~/.config/labwc/autostart`):
+  - 10 s Wait nach Boot
+  - Startet Chromium im Kiosk-Modus auf `http://192.168.1.211:5000`
+  - Startet zusätzlich eine zweite Chromium-Instanz mit `--start-maximized` (in derselben Zeile mit `&` verkettet — vermutlich Iterations-Rest, beide laufen parallel im Hintergrund)
+  - Ruft anschließend `~/switchtab.sh` auf — dieses Skript existiert auf dem Pi nicht (Aufruf wirft seit dem 22.04. in `~/.xsession-errors` einen Fehler, beeinträchtigt den Kiosk-Betrieb aber nicht weil die Chromium-Aufrufe davor bereits im Hintergrund laufen).
+
+- **`labwc-environment`** (entspricht `~/.config/labwc/environment`):
+  - XKB-Layout `de` (deutsche Tastatur)
+  - `XCURSOR_SIZE=24`
+
+- **`labwc-rc.xml`** (entspricht `~/.config/labwc/rc.xml`):
+  - Touchscreen-Mapping: `<touch deviceName="WaveShare WS170120" mapToOutput="HDMI-A-2" mouseEmulation="yes"/>`
+  - Theme: PiXonyx, Schriftart Nunito Sans 12pt Light
+
+Touchscreen-Modell: **WaveShare WS170120** (kapazitiv, 800×480, HDMI-A-2).
+
+Optional: Emoji-Font-Setup über `install_emoji.sh` (Hinweis: das darin enthaltene `systemctl restart kiosk` bezieht sich auf einen nicht existierenden Service — die Datei `install_emoji.sh` benennt im Kopfkommentar "Pi 2" als Zielsystem, gehört aber auf Pi 5; das Skript funktioniert trotzdem für den Font-Install-Teil).
+
+---
+
+## systemd-Services
+
+Insgesamt 5 systemd-Unit-Files im Repo:
+
+| Service | Pi | Start | `User=` |
+|---|---|---|---|
+| `dashboard.service` | Pi 1 | `python3 /home/raspi/dashboard_mariadb/app.py` | `raspi` |
+| `ffmpeg-stream.service` | Pi 1 | `ffmpeg ... -i udp://@:9000 -vf fps=5 -update 1 /tmp/frame.jpg` | `raspi` |
+| `person-detection.service` | Pi 1 | `python3 /home/raspi/person_detection.py` | *(nicht gesetzt — läuft als root)* |
+| `debug-server.service` | Pi 1 | `python3 /home/raspi/debug_server.py` | *(nicht gesetzt — läuft als root)* |
+| `kamera-stream.service` | Pi 3 | `rpicam-vid ... -o udp://192.168.1.211:9000` | `raspi` |
+| `sensor.service` | Pi 3 | `python3 /home/raspi/sensor_mqtt.py` | `raspi` |
+
+> Hinweis: `person-detection.service` und `debug-server.service` definieren keinen `User=`-Eintrag, laufen daher als `root`. Die anderen Services laufen als `raspi`. Das ist gewollt für die Hailo-Inferenz (PCIe-Device-Zugriff), für `debug_server.py` aber technisch unnötig.
+
+---
+
 ## Deployment
 
-| Pi | Pfad | Services | Dateien im Repo |
+| Pi | Repo-Pfad | Ziel auf Pi | Services |
 |---|---|---|---|
-| Pi 1 — Webserver | 192.168.1.211 | `/home/raspi/dashboard_mariadb/` | Flask, Hailo-8 KI, FFmpeg | `app.py` ✅, `config.py` ✅, `person_detection.py` ✅, `debug_server.py` ✅, `stream_test.py` ✅, `dashboard.service` ✅, `ffmpeg-stream.service` ✅, `person-detection.service` ✅, `debug-server.service` ✅ |
-| Pi 2 — Datenbank | 192.168.1.206 | — | MariaDB, MQTT Broker | `schema.sql` ✅ |
-| Pi 3 — Sensorik | 192.168.1.233 | `/home/raspi/` | DHT22, SCD30, Kamera | `sensor_mqtt.py` ✅, `DHT22.py` ✅, `test_dht.py` ✅, `test_co2.py` ✅, `kamera-stream.service` ✅, `sensor.service` ✅ |
-| Pi 4 — Automatisierung | 192.168.1.210 | `/config/` | Home Assistant | `configuration.yaml` ✅, `automations.yaml` ✅, `ha_automations_prod_v1.yaml` ✅, `ha_automations_test_v2.yaml` ✅ |
-| Pi 5 — GUI | 192.168.1.232 | — | Chromium Kiosk | `install_emoji.sh` ✅ |
+| Pi 1 — Webserver | Root (`app.py`, `config.py`, `person_detection.py`, `debug_server.py`, `stream_test.py`), `static/*`, `templates/*` | `/home/raspi/dashboard_mariadb/{app.py, config.py, ..., static/, templates/}` | `dashboard.service`, `ffmpeg-stream.service`, `person-detection.service`, `debug-server.service` |
+| Pi 2 — Datenbank | `schema.sql`, `raeume_seed.sql`, `pi2/mosquitto/*` | DB-Setup + `/etc/mosquitto/{mosquitto.conf, conf.d/}` | MariaDB, Mosquitto (Distro-Pakete) |
+| Pi 3 — Sensorik | Root (`sensor_mqtt.py`, `DHT22.py`, `test_dht.py`, `test_co2.py`), `pi3/boot_config.txt` | `/home/raspi/*.py`, `/boot/firmware/config.txt` | `kamera-stream.service`, `sensor.service`, `pigpiod.service` |
+| Pi 4 — Automatisierung | `configuration.yaml`, `automations.yaml`, `ha_automations_prod_v1.yaml`, `ha_automations_test_v2.yaml`, `scripts.yaml`, `scenes.yaml`, `secrets.example.yaml` | `/config/` (Home Assistant) | Home Assistant OS |
+| Pi 5 — GUI | `pi5/labwc-*`, `install_emoji.sh` | `~/.config/labwc/{autostart, environment, rc.xml}` | labwc-Autostart (kein systemd) |
 
-Für Produktion: `ha_automations_prod_v1.yaml` in HA laden.
-Für Tests: `ha_automations_test_v2.yaml` (kürzere Timeouts).
+**Für Produktion:** `ha_automations_prod_v1.yaml` in HA laden (10 Min Timeouts).
+**Für Tests:** `ha_automations_test_v2.yaml` (10 s / 30 s Timeouts).
