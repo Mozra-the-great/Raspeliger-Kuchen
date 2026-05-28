@@ -8,44 +8,44 @@ Dezentrales IoT-System zur intelligenten Raumverwaltung mit Buchungen, KI-basier
 
 ```
 ┌──────────────────────────────────────────┐
-│  Pi 33 (192.168.1.233)                   │
+│  Pi 3 — Sensorik (192.168.1.233)         │
 │  kamera-stream.service:                  │
 │    rpicam-vid 1080p@30fps                │
 │    → UDP 192.168.1.211:9000              │
 │  sensor.service:                         │
-│    sensor_mqtt.py                        │
+│    sensor_mqtt.py (DHT22 + SCD30)        │
 │    → MQTT sensor/raum_a/*               │
 └────────┬─────────────────────────────────┘
-         │ UDP :9000
+         │ UDP :9000          │ MQTT sensor/*
 ┌────────▼──────────────────────────────────────┐
-│  Pi 4 (192.168.1.211, raspberrypi-11)          │
+│  Pi 1 — Webserver (192.168.1.211)              │
 │                                                │
 │  ffmpeg-stream.service:                        │
 │    ffmpeg udp://@:9000 → /tmp/frame.jpg @5fps  │
-│                                                │
 │  person-detection.service:                     │
-│    person_detection.py                         │
-│    /tmp/frame.jpg → Hailo-8 YOLOv8s            │
-│    → /tmp/detections.json                      │
-│    → MQTT room/raum_a/occupied                 │
-│                                                │
+│    Hailo-8 YOLOv8s → MQTT room/raum_a/occupied │
 │  debug-server.service → debug_server.py :5001  │
 │  dashboard.service    → app.py :5000           │
 └────────┬───────────────────────────────────────┘
-         │ MQTT (room/*, sensor/*, cmd/*, state/*)
+         │ MQTT + MariaDB-Verbindung
 ┌────────▼──────────────────────────────────┐
-│  Pi 206 (192.168.1.206, raspberrypi-6)    │
-│  MQTT Broker :1883 + Home Assistant       │
+│  Pi 2 — Datenbank (192.168.1.206)         │
+│  MQTT Broker (Mosquitto) :1883            │
 │  MariaDB :3306 (DB: raumverwaltung)       │
+└────────┬──────────────────────────────────┘
+         │ MQTT (cmd/*, room/*, state/*)
+┌────────▼──────────────────────────────────┐
+│  Pi 4 — Automatisierung (192.168.1.210)   │
+│  Home Assistant :8123                     │
 │  configuration.yaml, automations.yaml     │
 │  ha_automations_prod_v1.yaml              │
 └────────┬──────────────────────────────────┘
          │ HTTP
-┌────────▼──────────────────────┐
-│  Pi 2 (192.168.1.210 od. 232) │
-│  Touchscreen Kiosk             │
-│  Chromium → http://Pi4:5000   │
-└───────────────────────────────┘
+┌────────▼──────────────────────────┐
+│  Pi 5 — GUI (192.168.1.232)       │
+│  Touchscreen-Kiosk                │
+│  Chromium → http://192.168.1.211  │
+└───────────────────────────────────┘
 ```
 
 ---
@@ -54,10 +54,11 @@ Dezentrales IoT-System zur intelligenten Raumverwaltung mit Buchungen, KI-basier
 
 | Node | IP | Rolle |
 |---|---|---|
-| Pi 2 | 192.168.1.210 oder .232 | Touchscreen Kiosk (Chromium → Pi 4 :5000) |
-| Pi 4 | 192.168.1.211 | Flask :5000 + Hailo-8 KI (person_detection.py) |
-| Pi 33 | 192.168.1.233 | Sensor-Node (DHT22/SCD30) + Kamera-Streamer (= "Pi 3") |
-| Pi 206 | 192.168.1.206 | MQTT Broker :1883 + Home Assistant |
+| Pi 1 — Webserver | 192.168.1.211 | Flask :5000, Hailo-8 KI, FFmpeg-Empfänger |
+| Pi 2 — Datenbank | 192.168.1.206 | MariaDB :3306, MQTT Broker :1883 |
+| Pi 3 — Sensorik | 192.168.1.233 | DHT22, SCD30, Kamera-Streamer (UDP) |
+| Pi 4 — Automatisierung | 192.168.1.210 | Home Assistant :8123 |
+| Pi 5 — GUI | 192.168.1.232 | Touchscreen-Kiosk (Chromium) |
 
 ---
 
@@ -573,7 +574,7 @@ Detail-Frontend (10s): GET /api/sensoren/raum_a
 
 ---
 
-## MariaDB-Schema (Pi 206, DB: `raumverwaltung`)
+## MariaDB-Schema (Pi 2 — Datenbank, 192.168.1.206, DB: `raumverwaltung`)
 
 Verifiziert aus `schema.sql`. Läuft auf Pi 206 (192.168.1.206), nicht Pi 4.
 
@@ -641,10 +642,11 @@ CREATE TABLE sensordaten (
 
 | Pi | Pfad | Services | Dateien im Repo |
 |---|---|---|---|
-| Pi 2 | — | Chromium Kiosk | `install_emoji.sh` ✅ |
-| Pi 4 | `/home/raspi/` & `/home/raspi/dashboard_mariadb/` | Flask, MariaDB, FFmpeg, Hailo-8 KI | `app.py` ✅, `config.py` ✅, `person_detection.py` ✅, `debug_server.py` ✅, `stream_test.py` ✅, `dashboard.service` ✅, `ffmpeg-stream.service` ✅, `person-detection.service` ✅, `debug-server.service` ✅ |
-| Pi 33 | `/home/raspi/` | Sensoren + Kamera-Streamer | `sensor_mqtt.py` ✅, `DHT22.py` ✅, `test_dht.py` ✅, `test_co2.py` ✅, `kamera-stream.service` ✅, `sensor.service` ✅ |
-| Pi 206 | `/config/` | Mosquitto, Home Assistant | `configuration.yaml` ✅, `automations.yaml` ✅, `ha_automations_prod_v1.yaml` ✅, `ha_automations_test_v2.yaml` ✅ |
+| Pi 1 — Webserver | 192.168.1.211 | `/home/raspi/dashboard_mariadb/` | Flask, Hailo-8 KI, FFmpeg | `app.py` ✅, `config.py` ✅, `person_detection.py` ✅, `debug_server.py` ✅, `stream_test.py` ✅, `dashboard.service` ✅, `ffmpeg-stream.service` ✅, `person-detection.service` ✅, `debug-server.service` ✅ |
+| Pi 2 — Datenbank | 192.168.1.206 | — | MariaDB, MQTT Broker | `schema.sql` ✅ |
+| Pi 3 — Sensorik | 192.168.1.233 | `/home/raspi/` | DHT22, SCD30, Kamera | `sensor_mqtt.py` ✅, `DHT22.py` ✅, `test_dht.py` ✅, `test_co2.py` ✅, `kamera-stream.service` ✅, `sensor.service` ✅ |
+| Pi 4 — Automatisierung | 192.168.1.210 | `/config/` | Home Assistant | `configuration.yaml` ✅, `automations.yaml` ✅, `ha_automations_prod_v1.yaml` ✅, `ha_automations_test_v2.yaml` ✅ |
+| Pi 5 — GUI | 192.168.1.232 | — | Chromium Kiosk | `install_emoji.sh` ✅ |
 
 Für Produktion: `ha_automations_prod_v1.yaml` in HA laden.
 Für Tests: `ha_automations_test_v2.yaml` (kürzere Timeouts).

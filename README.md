@@ -19,14 +19,13 @@ Das System verwaltet mehrere Meetingräume und verbindet Buchungslogik, Umgebung
 
 ## Hardware
 
-| Node | Hardware | Rolle |
+| Node | IP | Rolle |
 |---|---|---|
-| Pi 1 | Raspberry Pi 5 + Hailo-8 HAT | KI-Personenerkennung |
-| Pi 2 | Raspberry Pi + Touchscreen | Kiosk-Display |
-| Pi 3 | Raspberry Pi | Kamera-Streamer |
-| Pi 4 | Raspberry Pi 4 | Flask-Backend + MariaDB |
-| Pi 33 | Raspberry Pi | Sensor-Node (DHT22 + SCD30) |
-| Pi 206 | Raspberry Pi | MQTT Broker + Home Assistant |
+| Pi 1 — Webserver | 192.168.1.211 | Flask-Webserver, REST-API, Hailo-8 KI (Personenerkennung) |
+| Pi 2 — Datenbank | 192.168.1.206 | MariaDB, MQTT-Broker (Mosquitto), Raumfreigabe-Logik |
+| Pi 3 — Sensorik | 192.168.1.233 | DHT22, SCD30 (CO2), Kamera-Modul, UDP-Stream |
+| Pi 4 — Automatisierung | 192.168.1.210 | Home Assistant (Port 8123) |
+| Pi 5 — GUI | 192.168.1.232 | Touchscreen-Kiosk (Chromium) |
 
 ---
 
