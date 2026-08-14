@@ -90,9 +90,8 @@ Eine vollständige Beschreibung aller Komponenten, Datenflüsse, MQTT-Topics und
 
 GNU General Public License v3.0 — siehe [LICENSE](LICENSE).
 
-Bis zur Umstellung stand das Projekt unter der MIT-Lizenz. Diese Erteilung gilt für
-den bis dahin veröffentlichten Code weiter und ist in [LICENSE.MIT](LICENSE.MIT)
-dokumentiert.
+Das Projekt stand ursprünglich unter der MIT-Lizenz. Die Umstellung auf GPLv3
+erfolgte 2026 mit Zustimmung aller Copyright-Inhaber (Moritz, Nick, Niklas, Robin).
 
 `DHT22.py` enthält Code aus den pigpio-Beispielen (Joan2937, Public Domain).
 
